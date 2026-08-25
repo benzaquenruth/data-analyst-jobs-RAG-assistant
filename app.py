@@ -121,7 +121,7 @@ if selected_question or st.button("Ask"):
         with st.spinner("Checking your questions..."):
             guardrail = check_input(user_input, assistant.llm_client)
     except Exception: 
-        st.error("I couldn't check this question right now. Please try again."))
+        st.error("I couldn't check this question right now. Please try again.")
     else: 
         if guardrail.fail : 
             st.warning(
