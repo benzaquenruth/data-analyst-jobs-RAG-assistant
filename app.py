@@ -19,6 +19,7 @@ from assistant import create_assistant
 from db_save import save_conversation
 from db_feedback import save_feedback
 from judge import evaluate_relevance
+from guardrails import check_input
 
 
 
@@ -116,42 +117,53 @@ user_input = st.text_input(
 if selected_question or st.button("Ask"):
     user_input = selected_question or user_input
     
-    with st.spinner("Searching job listings and thinking..."):
-        # assistant.rag() is the full pipeline from rag_helper.py:
-        # hybrid search (keyword + vector) -> build prompt -> call the LLM.
-        answer = assistant.rag(user_input)
+    try:
+        with st.spinner("Checking your questions..."):
+            guardrail = check_input(user_input, assistant.llm_client)
+    except Exception: 
+        st.error("I couldn't check this question right now. Please try again."))
+    else: 
+        if guardrail.fail : 
+            st.warning(
+                "That question can't be processed. Please ask an appropriate question about data analyst jobs in Israel."
+            )
+        else:  
+            with st.spinner("Searching job listings and thinking..."):
+                # assistant.rag() is the full pipeline from rag_helper.py:
+                # hybrid search (keyword + vector) -> build prompt -> call the LLM.
+                answer = assistant.rag(user_input)
 
-    # Because assistant is a RAGWithMetrics (see metrics.py), the call
-    # above also filled in assistant.last_call with everything about
-    # this one exchange: response time, token counts, and cost.
-    record = assistant.last_call
+            # Because assistant is a RAGWithMetrics (see metrics.py), the call
+            # above also filled in assistant.last_call with everything about
+            # this one exchange: response time, token counts, and cost.
+            record = assistant.last_call
 
-    # Save this question + answer + metrics as one row in monitoring.db.
-    conversation_id = save_conversation(record, user_input)
+            # Save this question + answer + metrics as one row in monitoring.db.
+            conversation_id = save_conversation(record, user_input)
 
-    # Ask the LLM judge (judge.py) to grade this answer's relevance to
-    # the question, then save that verdict as a "judge" feedback row
-    # linked to the conversation we just saved.
-    relevance, explanation = evaluate_relevance(user_input, answer)
-    save_feedback(
-            conversation_id,
-            "judge",
-            relevance=relevance,
-            explanation=explanation
-        )
+            # Ask the LLM judge (judge.py) to grade this answer's relevance to
+            # the question, then save that verdict as a "judge" feedback row
+            # linked to the conversation we just saved.
+            relevance, explanation = evaluate_relevance(user_input, answer)
+            save_feedback(
+                    conversation_id,
+                    "judge",
+                    relevance=relevance,
+                    explanation=explanation
+                )
 
-    # Stash everything needed to redraw this answer on screen into
-    # st.session_state, instead of just local variables. Streamlit
-    # re-runs this whole file top-to-bottom on every click (e.g. the
-    # 👍/👎 buttons below) — a plain local variable would be lost on
-    # that rerun, but st.session_state survives across reruns within
-    # the same browser tab. This is what keeps the answer visible after
-    # giving feedback, instead of it vanishing.
-    st.session_state.conversation_id = conversation_id
-    st.session_state.last_answer = answer
-    st.session_state.last_record = record
-    st.session_state.last_relevance = relevance
-    st.session_state.last_explanation = explanation
+            # Stash everything needed to redraw this answer on screen into
+            # st.session_state, instead of just local variables. Streamlit
+            # re-runs this whole file top-to-bottom on every click (e.g. the
+            # 👍/👎 buttons below) — a plain local variable would be lost on
+            # that rerun, but st.session_state survives across reruns within
+            # the same browser tab. This is what keeps the answer visible after
+            # giving feedback, instead of it vanishing.
+            st.session_state.conversation_id = conversation_id
+            st.session_state.last_answer = answer
+            st.session_state.last_record = record
+            st.session_state.last_relevance = relevance
+            st.session_state.last_explanation = explanation
 
 
 # This block redraws the most recent answer + metrics + judge verdict on
@@ -163,7 +175,7 @@ if selected_question or st.button("Ask"):
 # new Streamlit session, so session_state is empty again).
 if "last_answer" in st.session_state:
     record = st.session_state.last_record
-
+       
     st.success("Done!")
     st.write(st.session_state.last_answer)
     # st.write(f"Response time: {record.response_time:.2f}s")
@@ -172,8 +184,8 @@ if "last_answer" in st.session_state:
     # st.write(f"Cost: ${record.cost:.4f}")
     # st.write(f"Judge relevance: {st.session_state.last_relevance}")
     # st.write(f"Judge explanation: {st.session_state.last_explanation}")
-
-
+ 
+ 
 # These two buttons live outside both blocks above, so they stay on the
 # page across reruns. They only work once a question has been asked at
 # least once (i.e. once st.session_state.conversation_id exists) —
@@ -183,7 +195,7 @@ st.divider()
 # close together on the left instead of spread across the full width.
 # (wide enough that "Not helpful" doesn't wrap onto a second line)
 col1, col2, _ = st.columns([2, 2, 3])
-
+ 
 with col1:
     if st.button("👍 Helpful"):
         if "conversation_id" in st.session_state:
@@ -191,7 +203,7 @@ with col1:
             st.write("Thanks for the feedback!")
         else:
             st.write("Ask a question first.")
-
+ 
 with col2:
     if st.button("👎 Not helpful"):
         if "conversation_id" in st.session_state:
@@ -199,3 +211,4 @@ with col2:
             st.write("Thanks for the feedback!")
         else:
             st.write("Ask a question first.")
+            
