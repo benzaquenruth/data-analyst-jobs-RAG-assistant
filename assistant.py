@@ -12,23 +12,34 @@ from openai import OpenAI
 from rag_helper import load_index
 from metrics import RAGWithMetrics
 
+import os 
+
 
 def create_assistant():
-    # load_dotenv() reads the .env file so OPENAI_API_KEY is available
-    # to the OpenAI() client below.
+    # Load local environment variables.
+    # Streamlit Cloud provides its settings through Secrets.
     load_dotenv()
 
-    # load_index() opens the keyword search index we already built into
-    # jobs.db with ingest.py — it does NOT rebuild anything, just connects.
-    index = load_index()
+    # Streamlit Cloud already uses "bigquery".
+    # Local/Docker defaults to "sqlite".
+    backend = os.getenv("MONITORING_BACKEND", "sqlite")
 
-    # RAGWithMetrics (from metrics.py) already knows how to do hybrid
-    # search, build the prompt, and call the LLM (it inherits all of
-    # that from RAGBase) — we just need to give it the index and an
-    # OpenAI client to use.
+    if backend == "bigquery":
+        # Live app: use BigQuery for keyword and vector retrieval.
+        from bigquery_client import get_bigquery_client
+
+        index = None
+        bigquery_client = get_bigquery_client()
+
+    else:
+        # Local/Docker: keep using jobs.db and the local vector files.
+        index = load_index()
+        bigquery_client = None
+
     return RAGWithMetrics(
         index=index,
-        llm_client=OpenAI()
+        llm_client=OpenAI(),
+        bigquery_client=bigquery_client,
     )
 
 

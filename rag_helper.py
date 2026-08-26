@@ -7,6 +7,10 @@ from pathlib import Path
 
 import numpy as np
 
+from google.cloud import bigquery
+
+
+
 DB_PATH = "jobs.db"
 EMBEDDING_MODEL = "text-embedding-3-small"
 
@@ -80,27 +84,144 @@ class RAGBase:
         llm_client,
         instructions=INSTRUCTIONS,
         prompt_template=PROMPT_TEMPLATE,
-        model="gpt-5.4-mini"
+        model="gpt-5.4-mini",
+        bigquery_client=None,
     ):
         self.index = index
         self.llm_client = llm_client
         self.instructions = instructions
         self.prompt_template = prompt_template
         self.model = model
+        
+        # None locally; authenticated BigQuery client on Streamlit Cloud.
+        self.bigquery_client = bigquery_client
 
     # search for relevant job postings
+    # Search for relevant job postings using keywords.
     def search(self, query, num_results=5):
+
+        # Streamlit Cloud uses BigQuery.
+        if self.bigquery_client is not None:
+            return self._bigquery_keyword_search(query, num_results)
+
+        # Local/Docker keeps using the existing SQLite index.
         boost_dict = {
             "skills": 4.0,
             "Title": 3.0,
-            "Job_Description": 3.0
+            "Job_Description": 3.0,
         }
 
         return self.index.search(
             query,
             num_results=num_results,
-            boost_dict=boost_dict
+            boost_dict=boost_dict,
         )
+
+
+    # Keyword search used only by the live Streamlit app.
+    def _bigquery_keyword_search(self, query, num_results=5):
+
+        sql = f"""
+        WITH query_terms AS (
+        SELECT DISTINCT term
+        FROM UNNEST(
+            REGEXP_EXTRACT_ALL(LOWER(@user_query), r'[a-z0-9+#.]+')
+        ) AS term
+        WHERE term NOT IN (
+            'a', 'an', 'and', 'are', 'best', 'for', 'in', 'is',
+            'job', 'jobs', 'match', 'matches', 'me', 'of', 'on',
+            'or', 'show', 'skill', 'skills', 'someone', 'the',
+            'to', 'what', 'which', 'with', 'would'
+        )
+        ),
+
+        newest_jobs AS (
+        SELECT
+            Title,
+            Job_Description,
+            Platform,
+            Link,
+            Date,
+            Company_Name,
+            City,
+            Remote,
+            experience_bucket,
+            experience_reasoning,
+            skills
+        FROM
+            `massive-bliss-481811-d8.job_listings_analysis.clean_jobs`
+        QUALIFY ROW_NUMBER() OVER (
+            PARTITION BY Link
+            ORDER BY Date DESC
+        ) = 1
+        ),
+
+        scored_jobs AS (
+        SELECT
+            *,
+            (
+            SELECT SUM(
+                IF(
+                term IN UNNEST(
+                    REGEXP_EXTRACT_ALL(
+                    LOWER(IFNULL(ARRAY_TO_STRING(skills, ' '), '')),
+                    r'[a-z0-9+#.]+'
+                    )
+                ),
+                4,
+                0
+                )
+                +
+                IF(
+                term IN UNNEST(
+                    REGEXP_EXTRACT_ALL(
+                    LOWER(IFNULL(Title, '')),
+                    r'[a-z0-9+#.]+'
+                    )
+                ),
+                3,
+                0
+                )
+                +
+                IF(
+                term IN UNNEST(
+                    REGEXP_EXTRACT_ALL(
+                    LOWER(IFNULL(Job_Description, '')),
+                    r'[a-z0-9+#.]+'
+                    )
+                ),
+                3,
+                0
+                )
+            )
+            FROM query_terms
+            ) AS keyword_score
+        FROM newest_jobs
+        )
+
+        SELECT *
+        FROM scored_jobs
+        WHERE keyword_score > 0
+        ORDER BY keyword_score DESC, Date DESC
+        LIMIT {int(num_results)}
+        """
+
+        job_config = bigquery.QueryJobConfig(
+            query_parameters=[
+                bigquery.ScalarQueryParameter(
+                    "user_query",
+                    "STRING",
+                    query,
+                )
+            ]
+        )
+
+        rows = self.bigquery_client.query(
+            sql,
+            job_config=job_config,
+        ).result()
+
+        return [dict(row.items()) for row in rows]
 
     # turn search results into text context for the LLM
     def build_context(self, search_results):
@@ -143,34 +264,107 @@ class RAGBase:
         return response.output_text
     
         # search using vector embeddings
+    # Search using vector embeddings.
     def vector_search(self, query, num_results=5):
-        embeddings, documents = load_vector_index()
 
-        # turn the user question into a vector
+        # Turn the user’s question into a vector.
+        # This OpenAI call is used by both local and live versions.
         response = self.llm_client.embeddings.create(
             model=EMBEDDING_MODEL,
-            input=query
+            input=query,
         )
 
-        query_embedding = np.array(response.data[0].embedding, dtype=np.float32)
+        query_embedding = np.array(
+            response.data[0].embedding,
+            dtype=np.float32,
+        )
 
-        # normalize query vector
+        # Streamlit Cloud: BigQuery compares the vectors.
+        if self.bigquery_client is not None:
+
+            sql = f"""
+            WITH vector_matches AS (
+            SELECT
+                base.Link,
+                distance
+            FROM VECTOR_SEARCH(
+                TABLE `massive-bliss-481811-d8.rag_indexes.job_embeddings`,
+                'embedding',
+                (SELECT @query_embedding AS embedding),
+                top_k => {int(num_results)},
+                distance_type => 'COSINE',
+                options => '{{"use_brute_force": true}}'
+            )
+            ),
+
+            newest_jobs AS (
+            SELECT
+                Title,
+                Job_Description,
+                Platform,
+                Link,
+                Date,
+                Company_Name,
+                City,
+                Remote,
+                experience_bucket,
+                experience_reasoning,
+                skills
+            FROM
+                `massive-bliss-481811-d8.job_listings_analysis.clean_jobs`
+            QUALIFY ROW_NUMBER() OVER (
+                PARTITION BY Link
+                ORDER BY Date DESC
+            ) = 1
+            )
+
+            SELECT
+            jobs.*,
+            1 - matches.distance AS score
+            FROM vector_matches AS matches
+            INNER JOIN newest_jobs AS jobs
+            ON matches.Link = jobs.Link
+            ORDER BY matches.distance
+            """
+
+            job_config = bigquery.QueryJobConfig(
+                query_parameters=[
+                    bigquery.ArrayQueryParameter(
+                        "query_embedding",
+                        "FLOAT64",
+                        query_embedding.astype(float).tolist(),
+                    )
+                ]
+            )
+
+            rows = self.bigquery_client.query(
+                sql,
+                job_config=job_config,
+            ).result()
+
+            return [dict(row.items()) for row in rows]
+
+        # Local/Docker: keep using the existing local vector files.
+        embeddings, documents = load_vector_index()
+
+        # Normalize the question vector.
         query_embedding = query_embedding / np.linalg.norm(query_embedding)
 
-        # normalize document vectors
+        # Normalize the stored stored job vectors.
         embeddings = embeddings / np.linalg.norm(
             embeddings,
             axis=1,
-            keepdims=True
+            keepdims=True,
         )
 
-        # calculate similarity between query and every job document
+        # Calculate similarity between the question and every job.
         scores = embeddings @ query_embedding
 
-        # get the best matching documents
+        # Select the best matching documents.
         best_indices = np.argsort(scores)[::-1][:num_results]
 
         results = []
+
         for idx in best_indices:
             doc = documents[idx]
             doc["score"] = float(scores[idx])
