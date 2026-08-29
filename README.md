@@ -20,8 +20,8 @@ Ask about roles, skills, locations, seniority, or what jobs fit your background 
 
 <img width="1536" height="1024" alt="ChatGPT Image Aug 29, 2026, 02_58_15 AM" src="https://github.com/user-attachments/assets/51e27c2e-d882-494a-80a6-bd013ed56cde" />
 
-
 <br>
+
 
 **Good questions to ask:**
 - "Show me examples of positions someone with data engineering knowledge could apply for"
