@@ -31,11 +31,10 @@ Ask about roles, skills, locations, seniority, or what jobs fit your background 
 
 
 **🌐 Live app (Streamlit Cloud)**
-🔄 Job postings are collected daily by the Job Seeker Automation and stored in BigQuery.
 
+🔄 Job postings are collected daily by the Job Seeker Automation and stored in BigQuery.\
 🧠 n8n automatically creates embeddings for new jobs, while BigQuery powers both keyword and vector search.
 
-Paste this directly into your README—GitHub will render it as a diagram:
 
 ```mermaid
 flowchart TD
