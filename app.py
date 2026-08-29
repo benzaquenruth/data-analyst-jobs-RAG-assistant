@@ -65,11 +65,11 @@ Ask about roles, skills, locations, seniority, or what jobs fit your background 
 st.markdown("### Try one of these questions:")
 
 example_questions = [
+    "What stands out about gaming analytics roles? Please explain in detail.",
     "For Analyst jobs with data engineering knowledge: What skills, tools, and experience are employers looking for?" ,
-    "For financial analyst-related roles, what skills, tools, and experience are employers looking for?",
-    "Show me gaming company job postings and what they’re looking for",
-    "For fraud and risk analytics roles, what skills, tools, and experience are employers looking for?",
-    "For marketing analytics roles, what are employers looking for? Show me also job postings and their requirements",
+    "For financial analyst-related roles: what skills, tools, and experience are employers looking for?",
+    "What stands out about fraud and risk analytics roles? Please explain in detail.",
+    "For marketing analytics roles, what are employers looking for? Please explain in detail.",
     "What jobs would fit someone with experience in BigQuery, ETL pipelines, and data integration?",
     "Best matches for a data / business analyst background",
     "Best maches for someone with SQL and python skills"
