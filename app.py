@@ -65,7 +65,7 @@ Ask about roles, skills, locations, seniority, or what jobs fit your background 
 st.markdown("### Try one of these questions:")
 
 example_questions = [
-    "Show me examples of positions someone with data engineering knowledge could apply for",
+    "Analyst jobs for someone with data engineering knowledge. Show me what skills, tools, and experience are employers looking for" ,
     "For financial analyst-related roles, what skills, tools, and experience are employers looking for?",
     "Show me gaming company job postings and what they’re looking for",
     "For fraud and risk analytics roles, what skills, tools, and experience are employers looking for?",
