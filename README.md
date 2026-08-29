@@ -17,7 +17,7 @@ Ask about roles, skills, locations, seniority, or what jobs fit your background 
 
 **It's a job-matching assistant, not a statistics tool!** it won't answer dataset-wide questions like *"How many jobs are open in Tel Aviv?"*
 
-
+<a id="live-app-diagram"></a>
 <img width="1536" height="1024" alt="ChatGPT Image Aug 29, 2026, 02_58_15 AM" src="https://github.com/user-attachments/assets/51e27c2e-d882-494a-80a6-bd013ed56cde" />
 
 <br>
@@ -38,14 +38,7 @@ Ask about roles, skills, locations, seniority, or what jobs fit your background 
 🔄 Job postings are collected daily by the Job Seeker Automation and stored in BigQuery.\
 🧠 n8n automatically creates embeddings for new jobs, while BigQuery powers both keyword and vector search.
 
-
-```mermaid
-flowchart TD
-    A["🌐 Open the live app"] --> B["💬 Ask a question"]
-    B --> C["🔎 Search the latest synchronized job data"]
-    C --> D["💾 Save the conversation and feedback<br/>to the shared BigQuery database"]
-    D --> E["📊 Everyone sees the same<br/>live monitoring dashboard"]
-```
+[Take a look at the diagram ⬆️](#live-app-diagram)
 
 
 **💻 Local / Docker**
