@@ -61,32 +61,38 @@ def get_conversations(limit=10):
         client = get_bigquery_client()
 
         query = f"""
-            SELECT id, question, answer, model,
-                   instructions, prompt,
-                   prompt_tokens, completion_tokens, total_tokens,
-                   response_time, cost, timestamp
-            FROM `massive-bliss-481811-d8.rag_monitoring.conversations`
-            ORDER BY timestamp DESC
+            SELECT
+                c.id, c.question, c.answer, c.model,
+                c.instructions, c.prompt,
+                c.prompt_tokens, c.completion_tokens, c.total_tokens,
+                c.response_time, c.cost, c.timestamp,
+                f.relevance, f.explanation
+            FROM `massive-bliss-481811-d8.rag_monitoring.conversations` AS c
+            LEFT JOIN `massive-bliss-481811-d8.rag_monitoring.feedback` AS f
+                ON c.id = f.conversation_id
+                AND f.source = 'judge'
+            ORDER BY c.timestamp DESC
             LIMIT {int(limit)}
         """
 
         rows = list(client.query(query).result())
 
     else:
-        # -------------------------
-        # LOCAL / DOCKER → SQLite
-        # -------------------------
-
         conn = get_db_connection()
         try:
             rows = conn.execute(
                 """
-                SELECT id, question, answer, model,
-                       instructions, prompt,
-                       prompt_tokens, completion_tokens, total_tokens,
-                       response_time, cost, timestamp
-                FROM conversations
-                ORDER BY timestamp DESC
+                SELECT
+                    c.id, c.question, c.answer, c.model,
+                    c.instructions, c.prompt,
+                    c.prompt_tokens, c.completion_tokens, c.total_tokens,
+                    c.response_time, c.cost, c.timestamp,
+                    f.relevance, f.explanation
+                FROM conversations AS c
+                LEFT JOIN feedback AS f
+                    ON c.id = f.conversation_id
+                    AND f.source = 'judge'
+                ORDER BY c.timestamp DESC
                 LIMIT ?
                 """,
                 (limit,),
@@ -98,10 +104,13 @@ def get_conversations(limit=10):
 
     for row in rows:
         record = row_to_record(row)
+
         results.append({
             "id": row[0],
             "question": row[1],
-            "record": record
+            "record": record,
+            "relevance": row[12],
+            "explanation": row[13],
         })
 
     return results

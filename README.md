@@ -1,21 +1,20 @@
 # Data Analyst Israel Jobs RAG Assistant
 
-A RAG (Retrieval-Augmented Generation) assistant that helps you find data analyst jobs in Israel. Built as the final project for the [LLM Zoomcamp](https://github.com/DataTalksClub/llm-zoomcamp) course.
+A RAG (Retrieval-Augmented Generation) assistant that helps you find and learn about data analyst jobs in Israel. Built as the final project for the [LLM Zoomcamp](https://github.com/DataTalksClub/llm-zoomcamp) course.
 
 :rocket: Live app: https://data-analyst-job-seeker-rag-assistant.streamlit.app/
+
 
 ## What is this about? 🤔
 
 Curious what's happening in the Israeli data analyst job market? 👀  
 This assistant searches **real job postings from LinkedIn and Indeed**, collected daily through an automated [data pipeline](https://github.com/benzaquenruth/data_analyst_job_seeker_automation).
 
-📅 The current dataset covers jobs from **Feb 23, 2026 to Aug 6, 2026**.
-
-Ask about roles, skills, locations, seniority, or what jobs fit your background 🚀
+Ask about roles, skills, locations, seniority, or what jobs fit your background 🚀 
+📊 The data is automatically updated every day at 10:00 AM! 
 
 **It's a job-matching assistant, not a statistics tool!** it won't answer dataset-wide questions like *"How many jobs are open in Tel Aviv?"*
 
-<img width="1672" height="941" alt="ChatGPT Image Aug 13, 2026, 02_55_34 AM" src="https://github.com/user-attachments/assets/8e0b3892-6505-41e7-b983-c70c68e83a55" />
 
 
 **Good questions to ask:**
@@ -27,22 +26,29 @@ Ask about roles, skills, locations, seniority, or what jobs fit your background 
 
 ## Live app vs. running it locally 🔀
 
-The assistant works the same way wherever you use it, but where the monitoring data (questions, answers, feedback) gets saved is different, depending on whether you're using the live app or your own local copy via Docker.
 
 **🌐 Live app (Streamlit Cloud)**
-```
-Open the live app
-        ↓
-You ask a question
-        ↓
-Conversation + feedback are saved
-to the shared BigQuery database
-        ↓
-Everyone sees the same
-live monitoring dashboard
+🔄 Job postings are collected daily by the Job Seeker Automation and stored in BigQuery.
+
+🧠 n8n automatically creates embeddings for new jobs, while BigQuery powers both keyword and vector search.
+
+Paste this directly into your README—GitHub will render it as a diagram:
+
+```mermaid
+flowchart TD
+    A["🌐 Open the live app"] --> B["💬 Ask a question"]
+    B --> C["🔎 Search the latest synchronized job data"]
+    C --> D["💾 Save the conversation and feedback<br/>to the shared BigQuery database"]
+    D --> E["📊 Everyone sees the same<br/>live monitoring dashboard"]
 ```
 
+
 **💻 Local / Docker**
+📊 Use the data set inside this repo
+📅 The current dataset in repo covers jobs from **Feb 23, 2026 to Aug 6, 2026**.
+
+<img width="1672" height="941" alt="ChatGPT Image Aug 13, 2026, 02_55_34 AM" src="https://github.com/user-attachments/assets/8e0b3892-6505-41e7-b983-c70c68e83a55" />
+
 ```
 Clone GitHub repository
         ↓

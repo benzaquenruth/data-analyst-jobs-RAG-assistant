@@ -165,8 +165,12 @@ for c in recent:
             f"Model: {record.model}"
         )
         st.write(
-            f"Tokens — prompt: {record.prompt_tokens} | "
-            f"completion: {record.completion_tokens} | "
+            f"Tokens — prompt: {record.prompt_tokens}, "
+            f"completion: {record.completion_tokens}, "
             f"total: {record.total_tokens}"
         )
         st.write(f"Timestamp: {record.timestamp}")
+        
+        st.markdown("#### LLM as a Judge")
+        st.write(f"**Relevance:** {c['relevance'] or 'Not available'}")
+        st.write(f"**Explanation:** {c['explanation'] or 'Not available'}")
