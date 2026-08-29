@@ -13,7 +13,8 @@ Curious what's happening in the Israeli data analyst job market? 👀  \
 This assistant searches **real job postings from LinkedIn and Indeed**, collected daily through an automated [data pipeline] (https://github.com/benzaquenruth/data_analyst_job_seeker_automation).
 
 Ask about roles, skills, locations, seniority, or what jobs fit your background 🚀 \
-📊 The data is automatically updated every day at 10:00 AM! \
+📊 The data is automatically updated every day at 10:00 AM! 
+
 <a id="live-app-diagram"></a>
 **It's a job-matching assistant, not a statistics tool!** it won't answer dataset-wide questions like *"How many jobs are open in Tel Aviv?"*
 
