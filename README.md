@@ -46,7 +46,8 @@ flowchart TD
 
 
 **💻 Local / Docker**
-📊 Use the data set inside this repo
+
+📊 Use the data set inside this repo.\
 📅 The current dataset in repo covers jobs from **Feb 23, 2026 to Aug 6, 2026**.
 
 <img width="1672" height="941" alt="ChatGPT Image Aug 13, 2026, 02_55_34 AM" src="https://github.com/user-attachments/assets/8e0b3892-6505-41e7-b983-c70c68e83a55" />
