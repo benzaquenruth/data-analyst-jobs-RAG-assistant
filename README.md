@@ -1,4 +1,5 @@
-![Uploading ChatGPT Image Aug 29, 2026, 02_58_15 AM.png…]()
+
+
 # Data Analyst Israel Jobs RAG Assistant
 
 A RAG (Retrieval-Augmented Generation) assistant that helps you find and learn about data analyst jobs in Israel. Built as the final project for the [LLM Zoomcamp](https://github.com/DataTalksClub/llm-zoomcamp) course.
@@ -17,6 +18,7 @@ Ask about roles, skills, locations, seniority, or what jobs fit your background 
 **It's a job-matching assistant, not a statistics tool!** it won't answer dataset-wide questions like *"How many jobs are open in Tel Aviv?"*
 
 
+<img width="1536" height="1024" alt="ChatGPT Image Aug 29, 2026, 02_58_15 AM" src="https://github.com/user-attachments/assets/51e27c2e-d882-494a-80a6-bd013ed56cde" />
 
 **Good questions to ask:**
 - "Show me examples of positions someone with data engineering knowledge could apply for"
