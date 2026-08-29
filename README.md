@@ -1,3 +1,4 @@
+![Uploading ChatGPT Image Aug 29, 2026, 02_58_15 AM.png…]()
 # Data Analyst Israel Jobs RAG Assistant
 
 A RAG (Retrieval-Augmented Generation) assistant that helps you find and learn about data analyst jobs in Israel. Built as the final project for the [LLM Zoomcamp](https://github.com/DataTalksClub/llm-zoomcamp) course.
