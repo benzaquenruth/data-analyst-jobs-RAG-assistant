@@ -22,7 +22,6 @@ Ask about roles, skills, locations, seniority, or what jobs fit your background 
 
 <br> <br>
 
-
 **Good questions to ask:**
 - "Show me examples of positions someone with data engineering knowledge could apply for"
 - "What jobs would fit someone with experience in BigQuery, ETL pipelines, and data integration?"
