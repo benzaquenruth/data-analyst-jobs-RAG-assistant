@@ -14,14 +14,13 @@ This assistant searches **real job postings from LinkedIn and Indeed**, collecte
 
 Ask about roles, skills, locations, seniority, or what jobs fit your background 🚀 
 📊 The data is automatically updated every day at 10:00 AM! 
-
+<a id="live-app-diagram"></a>
 **It's a job-matching assistant, not a statistics tool!** it won't answer dataset-wide questions like *"How many jobs are open in Tel Aviv?"*
 
-<a id="live-app-diagram"></a>
+
 <img width="1536" height="1024" alt="ChatGPT Image Aug 29, 2026, 02_58_15 AM" src="https://github.com/user-attachments/assets/51e27c2e-d882-494a-80a6-bd013ed56cde" />
 
 <br>
-
 **Good questions to ask:**
 - "Show me examples of positions someone with data engineering knowledge could apply for"
 - "What jobs would fit someone with experience in BigQuery, ETL pipelines, and data integration?"
