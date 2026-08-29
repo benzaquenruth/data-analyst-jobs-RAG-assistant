@@ -55,7 +55,7 @@ st.markdown("""
 Curious what's happening in the Israeli data analyst job market? 👀  
 This assistant searches **real job postings from LinkedIn and Indeed**, collected daily through an automated <a href="https://github.com/benzaquenruth/data_analyst_job_seeker_automation" style="color: inherit; text-decoration: underline; font-style: italic;">data pipeline</a>.
 
-📅 The current dataset covers jobs from **Feb 23, 2026 to Aug 6, 2026**.
+📊 The data is automatically updated every day at 10:00 AM!
 
 Ask about roles, skills, locations, seniority, or what jobs fit your background 🚀
 
@@ -66,11 +66,13 @@ st.markdown("### Try one of these questions:")
 
 example_questions = [
     "Show me examples of positions someone with data engineering knowledge could apply for",
+    "For financial analyst-related roles, what skills, tools, and experience are employers looking for?",
+    "Show me gaming company job postings and what they’re looking for",
+    "For fraud and risk analytics roles, what skills, tools, and experience are employers looking for?",
+    "For marketing analytics roles, what are employers looking for? Show me also job postings and their requirements",
     "What jobs would fit someone with experience in BigQuery, ETL pipelines, and data integration?",
     "Best matches for a data / business analyst background",
-    "Best maches for someone with SQL and python skills",
-    "For financial analyst-related roles, what skills, tools, and experience are employers looking for?",
-    "Show me gaming company job postings and what they’re looking for"
+    "Best maches for someone with SQL and python skills"
 ]
 
 selected_question = None
