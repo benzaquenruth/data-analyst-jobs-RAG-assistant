@@ -10,7 +10,7 @@ A RAG (Retrieval-Augmented Generation) assistant that helps you find and learn a
 ## What is this about? 🤔
 
 Curious what's happening in the Israeli data analyst job market? 👀  \
-This assistant searches **real job postings from LinkedIn and Indeed**, collected daily through an automated [data pipeline] (https://github.com/benzaquenruth/data_analyst_job_seeker_automation).
+This assistant searches **real job postings from LinkedIn and Indeed**, collected daily through an automated [data pipeline](https://github.com/benzaquenruth/data_analyst_job_seeker_automation)
 
 Ask about roles, skills, locations, seniority, or what jobs fit your background 🚀 \
 📊 The data is automatically updated every day at 10:00 AM! 
