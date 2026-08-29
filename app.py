@@ -53,7 +53,7 @@ st.title("Data Analyst Job Seeker Assistant")
 # (**bold**, emoji, etc.), that part is untouched.
 st.markdown("""
 Curious what's happening in the Israeli data analyst job market? 👀  
-This assistant searches **real job postings from LinkedIn and Indeed**, collected daily through an automated <a href="https://github.com/benzaquenruth/data_analyst_job_seeker_automation" style="color: inherit; text-decoration: underline; font-style: italic;">data pipeline</a>.
+This assistant searches **real job postings**, collected daily through an automated <a href="https://github.com/benzaquenruth/data_analyst_job_seeker_automation" style="color: inherit; text-decoration: underline; font-style: italic;">data pipeline</a>.
 
 📊 The data is automatically updated every day at 10:00 AM!
 
