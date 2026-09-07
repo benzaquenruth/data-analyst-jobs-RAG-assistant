@@ -20,7 +20,54 @@ from db_save import save_conversation
 from db_feedback import save_feedback
 from judge import evaluate_relevance
 from guardrails import check_input
+from datetime import date, timedelta
 
+# We cache the earliest job date for the date filter slice on the sidebar.
+@st.cache_data(ttl=3600)
+def get_earliest_job_date():
+    from bigquery_client import get_bigquery_client
+
+    client = get_bigquery_client()
+
+    query = """
+        SELECT MIN(Date) AS earliest_job_date
+        FROM `massive-bliss-481811-d8.job_listings_analysis.clean_jobs`
+        WHERE Date IS NOT NULL
+    """
+
+    row = next(client.query(query).result())
+    return row.earliest_job_date
+# building the sidebar with the page links and the date filter
+with st.sidebar:
+    st.page_link("app.py", label="App", icon="🏠")
+    st.page_link(
+        "pages/1_Monitoring_Dashboard.py",
+        label="Monitoring Dashboard",
+        icon="📊",
+    )
+
+    st.divider()
+
+    st.subheader("Job posting dates")
+
+    today = date.today()
+
+    start_date, end_date = st.slider(
+    "Select a date range",
+    min_value=earliest_job_date,
+    max_value=today,
+    value=(earliest_job_date, today),
+    format="DD/MM/YYYY",
+)
+
+    st.caption(
+        "Choose a period of at least 14 days. "
+        "The assistant will search only jobs posted during this period."
+    )
+
+    if (end_date - start_date).days < 14:
+        st.error("Please select a range of at least 14 days.")
+        st.stop()
 
 
 # testing the conection between the app and the BigQuery client for Steamlit live app
@@ -46,7 +93,30 @@ from guardrails import check_input
 # optimize it later with @st.cache_resource if it turns out to be slow.
 assistant = create_assistant()
 
-st.title("Data Analyst Job Seeker Assistant")
+# Add header with custom font, size, color, and text shadow. 
+st.markdown(
+    """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+
+    .main-title {
+        font-family: 'Anton', sans-serif;
+        font-size: clamp(42px, 6vw, 76px);
+        line-height: 1.05;
+        letter-spacing: 1px;
+        color: #D85F3F;
+        -webkit-text-stroke: 2px #172033;
+        text-shadow: 4px 4px 0px #E7D9C9;
+        margin-bottom: 25px;
+    }
+    </style>
+
+    <h1 class="main-title">
+        Data Analyst Job Seeker Assistant
+    </h1>
+    """,
+    unsafe_allow_html=True,
+)
 
 # unsafe_allow_html=True below only enables the one <a> tag for "data
 # pipeline" further down — everything else here is still plain markdown
