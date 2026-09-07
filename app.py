@@ -99,17 +99,20 @@ assistant = create_assistant()
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
 
     .main-title {
-        font-family: 'Anton', sans-serif;
-        font-size: clamp(42px, 6vw, 76px);
-        line-height: 1.05;
-        letter-spacing: 1px;
-        color: #D85F3F;
+        font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
+        font-size: clamp(50px, 7vw, 82px);
+        font-weight: 400;
+        line-height: 1;
+        letter-spacing: 2px;
+        text-align: center;
+        text-transform: uppercase;
+        color: #C9573D;
         -webkit-text-stroke: 2px #172033;
-        text-shadow: 4px 4px 0px #E7D9C9;
-        margin-bottom: 25px;
+        text-shadow: 4px 4px 0 #E8DED2;
+        margin: 20px auto 35px auto;
     }
     </style>
 
