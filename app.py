@@ -37,6 +37,8 @@ def get_earliest_job_date():
 
     row = next(client.query(query).result())
     return row.earliest_job_date
+
+earliest_job_date = get_earliest_job_date()
 # building the sidebar with the page links and the date filter
 with st.sidebar:
     st.page_link("app.py", label="App", icon="🏠")
