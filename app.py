@@ -119,7 +119,7 @@ st.markdown(
     <h1 class="main-title">
         Data Analyst Job Seeker Assistant
     </h1>
-    """,i dont understand the tab
+    """,
     unsafe_allow_html=True,
 )
 
