@@ -119,7 +119,7 @@ st.markdown(
     <h1 class="main-title">
         Data Analyst Job Seeker Assistant
     </h1>
-    """,
+    """,i dont understand the tab
     unsafe_allow_html=True,
 )
 
@@ -140,7 +140,7 @@ Ask about roles, skills, locations, seniority, or what jobs fit your background 
 st.markdown("### Try one of these questions:")
 
 example_questions = [
-    "What stands out about gaming analytics roles? Please explain in detail.",
+    "What stands out about analytics roles in the gaming industry? Please explain in detail.",
     "For Analyst jobs with data engineering knowledge: What skills, tools, and experience are employers looking for?" ,
     "For financial analyst-related roles: what skills, tools, and experience are employers looking for?",
     "What stands out about fraud and risk analytics roles? Please explain in detail.",

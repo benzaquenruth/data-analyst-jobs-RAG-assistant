@@ -26,7 +26,10 @@ from db_query import (
     get_user_feedback_stats,
 )
 
-st.title("Jobs Assistant — Monitoring Dashboard")
+with st.sidebar:
+    st.page_link("app.py", label="App", icon="🏠")
+    
+st.title("Monitoring Dashboard")
 
 # The 💡 link in app.py jumps straight to the "Recent conversations"
 # subheader below (#recent-conversations). Streamlit normally reserves
