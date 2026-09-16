@@ -81,7 +81,12 @@ with st.sidebar:
 
     st.caption(
         "Choose a period of at least 14 days. "
-        "The assistant will search only jobs posted during this period."
+        "The assistant will search for your answer only among jobs posted during this period."
+    )
+    st.caption(
+        "For more overview questions about the nature or qualities of jobs in "
+        "different industries (finance, gaming, etc.) and others, we recommend "
+        "using all the data available."
     )
 
     if (end_date - start_date).days < 14:
@@ -150,6 +155,7 @@ This assistant searches **real job postings**, collected daily through an automa
 📊 The data is automatically updated every day at 10:00 AM!
 
 Ask about roles, skills, locations, seniority, or what jobs fit your background 🚀
+🏆 Recomend to add "show me the job postings you are looking at as reference to answer my question"
 
 **It's a job-matching assistant, not a statistics tool!** it won't answer dataset-wide questions like *"How many jobs are open in Tel Aviv?"*
 """, unsafe_allow_html=True)
