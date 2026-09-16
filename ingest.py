@@ -20,8 +20,11 @@ load_dotenv()
 CSV_PATH = "rag_jobs.csv"
 DB_PATH = "jobs.db"
 
-KEYWORD_FIELDS = ["Platform", "Company_Name", "City", "experience_bucket", "Date"]
+KEYWORD_FIELDS = ["Platform", "Company_Name", "City", "experience_bucket"]
 TEXT_FIELDS = ["Title", "Job_Description", "experience_reasoning", "skills"]
+# a real date field (not a keyword field) so the index supports >=/<= range
+# filtering, not just exact-match - needed for the app's date-range filter
+DATE_FIELDS = ["Date"]
 
 # fields combined into one string per job for embedding
 VECTOR_TEXT_FIELDS = [
@@ -114,6 +117,7 @@ def build_keyword_index(documents):
     index = TextSearchIndex(
         text_fields=TEXT_FIELDS,
         keyword_fields=KEYWORD_FIELDS,
+        date_fields=DATE_FIELDS,
         # Save the SQLite search database in a file called jobs.db
         db_path=DB_PATH
     )

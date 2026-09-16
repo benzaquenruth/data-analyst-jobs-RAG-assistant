@@ -13,6 +13,8 @@
 # HOW TO RUN THIS FILE:
 #   uv run streamlit run app.py
 
+import os
+
 import streamlit as st
 
 from assistant import create_assistant
@@ -22,21 +24,36 @@ from judge import evaluate_relevance
 from guardrails import check_input
 from datetime import date, timedelta
 
+# Same backend switch used everywhere else (assistant.py, db_save.py,
+# db_feedback.py, db_query.py): "bigquery" on Streamlit Cloud (where
+# secrets are configured), "sqlite" (the default) for local/Docker, which
+# has no BigQuery credentials at all.
+MONITORING_BACKEND = os.getenv("MONITORING_BACKEND", "sqlite")
+
+
 # We cache the earliest job date for the date filter slice on the sidebar.
 @st.cache_data(ttl=3600)
 def get_earliest_job_date():
-    from bigquery_client import get_bigquery_client
+    if MONITORING_BACKEND == "bigquery":
+        from bigquery_client import get_bigquery_client
 
-    client = get_bigquery_client()
+        client = get_bigquery_client()
 
-    query = """
-        SELECT MIN(Date) AS earliest_job_date
-        FROM `massive-bliss-481811-d8.job_listings_analysis.clean_jobs`
-        WHERE Date IS NOT NULL
-    """
+        query = """
+            SELECT MIN(Date) AS earliest_job_date
+            FROM `massive-bliss-481811-d8.job_listings_analysis.clean_jobs`
+            WHERE Date IS NOT NULL
+        """
 
-    row = next(client.query(query).result())
-    return row.earliest_job_date
+        row = next(client.query(query).result())
+        return row.earliest_job_date
+
+    # Local/Docker: no BigQuery credentials - read the earliest date from
+    # the same rag_jobs.csv ingest.py builds the local indexes from.
+    import pandas as pd
+
+    df = pd.read_csv("rag_jobs.csv", usecols=["Date"])
+    return date.fromisoformat(df["Date"].min())
 
 earliest_job_date = get_earliest_job_date()
 # building the sidebar with the page links and the date filter
@@ -208,7 +225,7 @@ if selected_question or st.button("Ask"):
             with st.spinner("Searching job listings and thinking..."):
                 # assistant.rag() is the full pipeline from rag_helper.py:
                 # hybrid search (keyword + vector) -> build prompt -> call the LLM.
-                answer = assistant.rag(user_input)
+                answer = assistant.rag(user_input, start_date, end_date)
 
             # Because assistant is a RAGWithMetrics (see metrics.py), the call
             # above also filled in assistant.last_call with everything about

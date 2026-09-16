@@ -17,8 +17,9 @@ EMBEDDING_MODEL = "text-embedding-3-small"
 VECTOR_EMBEDDINGS_PATH = Path("data/vector_embeddings.npy")
 VECTOR_DOCUMENTS_PATH = Path("data/vector_documents.json")
 
-TEXT_FIELDS = ["Title", "Job_Description",  "skills"]
-KEYWORD_FIELDS = ["Platform", "Company_Name", "City", "Status", "experience_bucket"]
+TEXT_FIELDS = ["Title", "Job_Description", "experience_reasoning", "skills"]
+KEYWORD_FIELDS = ["Platform", "Company_Name", "City", "experience_bucket"]
+DATE_FIELDS = ["Date"]
 
 
 INSTRUCTIONS = """
@@ -79,6 +80,7 @@ def load_index():
     index = TextSearchIndex(
         text_fields=TEXT_FIELDS,
         keyword_fields=KEYWORD_FIELDS,
+        date_fields=DATE_FIELDS,
         db_path=DB_PATH
     )
 
@@ -116,11 +118,15 @@ class RAGBase:
 
     # search for relevant job postings
     # Search for relevant job postings using keywords.
-    def search(self, query, num_results=5):
+    # start_date/end_date (optional): restrict results to jobs posted in
+    # that range - the app's sidebar date-range filter.
+    def search(self, query, num_results=5, start_date=None, end_date=None):
 
         # Streamlit Cloud uses BigQuery.
         if self.bigquery_client is not None:
-            return self._bigquery_keyword_search(query, num_results)
+            return self._bigquery_keyword_search(
+                query, num_results, start_date, end_date
+            )
 
         # Local/Docker keeps using the existing SQLite index.
         boost_dict = {
@@ -129,15 +135,22 @@ class RAGBase:
             "Job_Description": 3.0,
         }
 
+        filter_dict = None
+        if start_date is not None and end_date is not None:
+            filter_dict = {"Date": [(">=", start_date), ("<=", end_date)]}
+
         return self.index.search(
             query,
             num_results=num_results,
             boost_dict=boost_dict,
+            filter_dict=filter_dict,
         )
 
 
     # Keyword search used only by the live Streamlit app.
-    def _bigquery_keyword_search(self, query, num_results=5):
+    def _bigquery_keyword_search(
+        self, query, num_results=5, start_date=None, end_date=None
+    ):
 
         sql = f"""
         WITH query_terms AS (
@@ -220,19 +233,26 @@ class RAGBase:
         SELECT *
         FROM scored_jobs
         WHERE keyword_score > 0
+        {"AND Date BETWEEN @start_date AND @end_date" if start_date is not None and end_date is not None else ""}
         ORDER BY keyword_score DESC, Date DESC
         LIMIT {int(num_results)}
         """
 
-        job_config = bigquery.QueryJobConfig(
-            query_parameters=[
-                bigquery.ScalarQueryParameter(
-                    "user_query",
-                    "STRING",
-                    query,
-                )
-            ]
-        )
+        query_parameters = [
+            bigquery.ScalarQueryParameter(
+                "user_query",
+                "STRING",
+                query,
+            )
+        ]
+
+        if start_date is not None and end_date is not None:
+            query_parameters.extend([
+                bigquery.ScalarQueryParameter("start_date", "DATE", start_date),
+                bigquery.ScalarQueryParameter("end_date", "DATE", end_date),
+            ])
+
+        job_config = bigquery.QueryJobConfig(query_parameters=query_parameters)
 
         rows = self.bigquery_client.query(
             sql,
@@ -247,6 +267,7 @@ class RAGBase:
 
         for doc in search_results:
             lines.append("Title: " + str(doc.get("Title", "")))
+            lines.append("Date posted: " + str(doc.get("Date", "")))
             lines.append("Company: " + str(doc.get("Company_Name", "")))
             lines.append("City: " + str(doc.get("City", "")))
             lines.append("Platform: " + str(doc.get("Platform", "")))
@@ -283,7 +304,7 @@ class RAGBase:
     
         # search using vector embeddings
     # Search using vector embeddings.
-    def vector_search(self, query, num_results=5):
+    def vector_search(self, query, num_results=5, start_date=None, end_date=None):
 
         # Turn the user’s question into a vector.
         # This OpenAI call is used by both local and live versions.
@@ -342,18 +363,25 @@ class RAGBase:
             FROM vector_matches AS matches
             INNER JOIN newest_jobs AS jobs
             ON matches.Link = jobs.Link
+            {"WHERE jobs.Date BETWEEN @start_date AND @end_date" if start_date is not None and end_date is not None else ""}
             ORDER BY matches.distance
             """
 
-            job_config = bigquery.QueryJobConfig(
-                query_parameters=[
-                    bigquery.ArrayQueryParameter(
-                        "query_embedding",
-                        "FLOAT64",
-                        query_embedding.astype(float).tolist(),
-                    )
-                ]
-            )
+            query_parameters = [
+                bigquery.ArrayQueryParameter(
+                    "query_embedding",
+                    "FLOAT64",
+                    query_embedding.astype(float).tolist(),
+                )
+            ]
+
+            if start_date is not None and end_date is not None:
+                query_parameters.extend([
+                    bigquery.ScalarQueryParameter("start_date", "DATE", start_date),
+                    bigquery.ScalarQueryParameter("end_date", "DATE", end_date),
+                ])
+
+            job_config = bigquery.QueryJobConfig(query_parameters=query_parameters)
 
             rows = self.bigquery_client.query(
                 sql,
@@ -375,25 +403,48 @@ class RAGBase:
             keepdims=True,
         )
 
-        # Calculate similarity between the question and every job.
-        scores = embeddings @ query_embedding
+        # Restrict to jobs posted within the selected date range before
+        # ranking, so filtering never shrinks the final result count below
+        # num_results. Dates are stored as "YYYY-MM-DD" strings, which sort
+        # the same as real dates, so plain string comparison is enough.
+        if start_date is not None and end_date is not None:
+            start_str = start_date.isoformat()
+            end_str = end_date.isoformat()
+            candidate_indices = [
+                i for i, doc in enumerate(documents)
+                if start_str <= doc.get("Date", "") <= end_str
+            ]
+        else:
+            candidate_indices = list(range(len(documents)))
+
+        if not candidate_indices:
+            return []
+
+        # Calculate similarity between the question and every candidate job.
+        candidate_embeddings = embeddings[candidate_indices]
+        scores = candidate_embeddings @ query_embedding
 
         # Select the best matching documents.
-        best_indices = np.argsort(scores)[::-1][:num_results]
+        best_local_indices = np.argsort(scores)[::-1][:num_results]
 
         results = []
 
-        for idx in best_indices:
+        for local_idx in best_local_indices:
+            idx = candidate_indices[local_idx]
             doc = documents[idx]
-            doc["score"] = float(scores[idx])
+            doc["score"] = float(scores[local_idx])
             results.append(doc)
 
         return results
     
         # search using both keyword search and vector search
-    def hybrid_search(self, query, num_results=5):
-        keyword_results = self.search(query, num_results=10)
-        vector_results = self.vector_search(query, num_results=10)
+    def hybrid_search(self, query, num_results=5, start_date=None, end_date=None):
+        keyword_results = self.search(
+            query, num_results=10, start_date=start_date, end_date=end_date
+        )
+        vector_results = self.vector_search(
+            query, num_results=10, start_date=start_date, end_date=end_date
+        )
 
         scores = {}
         documents = {}
@@ -432,8 +483,12 @@ class RAGBase:
         return results
     
     # full RAG flow
-    def rag(self, query):
-        search_results = self.hybrid_search(query)
+    # start_date/end_date (optional): the app's sidebar date-range filter -
+    # restricts search to jobs posted within that range.
+    def rag(self, query, start_date=None, end_date=None):
+        search_results = self.hybrid_search(
+            query, start_date=start_date, end_date=end_date
+        )
         prompt = self.build_prompt(query, search_results)
         answer = self.llm(prompt)
     
