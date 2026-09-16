@@ -155,7 +155,8 @@ This assistant searches **real job postings**, collected daily through an automa
 📊 The data is automatically updated every day at 10:00 AM!
 
 Ask about roles, skills, locations, seniority, or what jobs fit your background 🚀
- 🏆 Recomend to add "show me the job postings you are looking at as reference to answer my question"
+
+🏆 Recomend to add "show me the job postings you are looking at as reference to answer my question"
 
 **It's a job-matching assistant, not a statistics tool!** it won't answer dataset-wide questions like *"How many jobs are open in Tel Aviv?"*
 """, unsafe_allow_html=True)
