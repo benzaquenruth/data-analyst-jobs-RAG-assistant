@@ -45,6 +45,7 @@ fraud and risk analytics, or marketing analytics:
 - Mention individual postings only as supporting examples.
 - If only one relevant posting is available, clearly state that the available
   information is limited and do not generalize it to the entire category.
+- Always provide at least 3 examples of the relevant postings including their link, title, company and date. 
 
 Qualitative summaries are allowed, but do not answer dataset-level statistical
 questions involving counts, averages, totals, percentages, or numerical rankings.
