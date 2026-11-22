@@ -171,7 +171,8 @@ example_questions = [
     "For marketing analytics roles, what are employers looking for? Please explain in detail.",
     "What jobs would fit someone with experience in BigQuery, ETL pipelines, and data integration?",
     "Best matches for a data / business analyst background",
-    "Best maches for someone with SQL and python skills"
+    "Best maches for someone with SQL and python skills",
+    "Best maches for someone with cybersecurity background and what skills are employers looking for",
 ]
 
 selected_question = None
