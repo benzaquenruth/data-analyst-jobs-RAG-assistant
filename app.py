@@ -160,7 +160,7 @@ Ask about roles, skills, locations, seniority, or what jobs fit your background 
 
 🏆 **Open the sidebar to select the job posting date range.**
 
-**It's a job-matching assistant, not a statistics tool!** it won't answer dataset-wide questions like *"How many jobs are open in Tel Aviv?"*
+**It's an assistant, not a statistics tool!** it won't answer dataset-wide questions like *"How many jobs are open in Tel Aviv?"*
 """, unsafe_allow_html=True)
 
 
