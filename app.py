@@ -30,6 +30,9 @@ from datetime import date, timedelta
 # has no BigQuery credentials at all.
 MONITORING_BACKEND = os.getenv("MONITORING_BACKEND", "sqlite")
 
+st.set_page_config(
+    initial_sidebar_state="expanded"
+)
 
 # We cache the earliest job date for the date filter slice on the sidebar.
 @st.cache_data(ttl=3600)
@@ -156,12 +159,9 @@ This assistant searches **real job postings**, collected daily through an automa
 
 Ask about roles, skills, locations, seniority, or what jobs fit your background 🚀
 
-🏆 Recomend to add "show me the job postings you are looking at as reference to answer my question"
-
 **It's a job-matching assistant, not a statistics tool!** it won't answer dataset-wide questions like *"How many jobs are open in Tel Aviv?"*
 """, unsafe_allow_html=True)
 
-st.markdown("### Try one of these questions:")
 
 example_questions = [
     "What stands out about analytics roles in the gaming industry? Please explain in detail.",
